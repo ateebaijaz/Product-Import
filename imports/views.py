@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST,require_GET
 
 from .models import ImportJob
 from .tasks import process_csv_import
@@ -27,3 +27,22 @@ def upload_csv(request):
         'status': job.status
     })
 
+
+@require_GET
+def import_status(request, job_id):
+    try:
+        job = ImportJob.objects.get(pk=job_id)
+    except ImportJob.DoesNotExist:
+        return JsonResponse(
+            {"error": "Job not found"},
+            status=404
+        )
+
+    return JsonResponse({
+        "job_id": job.pk,
+        "status": job.status,
+        "progress": job.progress,
+        "processed_rows": job.processed_rows,
+        "total_rows": job.total_rows,
+        "message": job.message,
+    })
