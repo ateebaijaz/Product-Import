@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+
+# Django
+.env
+media/
+staticfiles/
+
+# Logs
+*.log
+
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
