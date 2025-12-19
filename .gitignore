@@ -8,6 +8,7 @@ venv/
 .env
 media/
 staticfiles/
+pro/
 
 # Logs
 *.log
