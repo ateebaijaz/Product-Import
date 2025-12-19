@@ -27,7 +27,7 @@ def process_csv_import(self, job_id):
         job.progress = 0
         job.save(update_fields=['total_rows', 'processed_rows', 'progress'])
 
-        BATCH_SIZE = 100
+        BATCH_SIZE = 50
         batch = {}  # key = sku_lower (dedup per batch)
         for idx, row in enumerate(rows, start=1):
             sku = row.get('sku')

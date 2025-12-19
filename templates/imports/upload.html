@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <a href="/products/">
+    <button>View Products</button>
+    </a>
+
+    <br><br>
+    <title>CSV Import</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f6f7fb;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 600px;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        button {
+            background-color: #4f46e5;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background-color: #4338ca;
+        }
+
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
+
+        hr {
+            margin: 20px 0;
+        }
+
+        .status-box {
+            background-color: #f1f5f9;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .status {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .progress {
+            color: #2563eb;
+        }
+
+        .message {
+            color: #475569;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Upload Products CSV</h2>
+
+    <input type="file" id="csvFile" />
+    <br><br>
+    <button onclick="uploadCSV()">Upload</button>
+
+    <hr>
+
+    <h3>Status</h3>
+
+    <div class="status-box">
+        <p class="status" id="status">Waiting...</p>
+        <p class="progress" id="progress"></p>
+        <p class="message" id="message"></p>
+    </div>
+</div>
+
+<script>
+    let jobId = null;
+    let pollInterval = null;
+
+    function uploadCSV() {
+        const fileInput = document.getElementById("csvFile");
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert("Please select a CSV file");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        fetch("/imports/upload-csv/", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            jobId = data.job_id;
+            document.getElementById("status").innerText = "Uploaded (Job ID: " + jobId + ")";
+            startPolling();
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Upload failed");
+        });
+    }
+
+    function startPolling() {
+        pollInterval = setInterval(() => {
+            fetch(`/imports/status/${jobId}/`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("status").innerText = data.status.toUpperCase();
+                    document.getElementById("progress").innerText =
+                        `Progress: ${data.progress}% (${data.processed_rows}/${data.total_rows})`;
+                    document.getElementById("message").innerText = data.message || "";
+
+                    if (data.status === "completed" || data.status === "failed") {
+                        clearInterval(pollInterval);
+                    }
+                });
+        }, 1500);
+    }
+</script>
+
+</body>
+</html>

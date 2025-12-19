@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <a href="/imports/">
+    <button>Upload Products CSV</button>
+    </a>
+
+    <br><br>
+    <title>Products</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f6f7fb;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        button {
+            background-color: #4f46e5;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background-color: #4338ca;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            background-color: #e5e7eb;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #d1d5db;
+        }
+
+        .actions {
+            margin-bottom: 15px;
+        }
+
+        .pagination {
+            margin-top: 15px;
+        }
+
+        .pagination a {
+            margin-right: 10px;
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .pagination a:hover {
+            text-decoration: underline;
+        }
+
+        .danger {
+            background-color: #dc2626;
+        }
+
+        .danger:hover {
+            background-color: #b91c1c;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Product List</h2>
+
+
+    <table>
+        <tr>
+            <th>SKU</th>
+            <th>Name</th>
+            <th>Description</th>
+        </tr>
+        {% for product in products %}
+        <tr>
+            <td>{{ product.sku }}</td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.description }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">No products found</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+    </div>
+
+    <br>
+
+    <form method="post" action="/products/delete-all/">
+        {% csrf_token %}
+        <button type="submit" class="danger"
+            onclick="return confirm('Delete ALL products?')">
+            Delete All Products
+        </button>
+    </form>
+</div>
+
+</body>
+</html>

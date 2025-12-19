@@ -6,6 +6,10 @@ from .models import ImportJob
 from .tasks import process_csv_import
 from django.views.decorators.csrf import csrf_exempt
 
+from django.shortcuts import render
+
+def upload_page(request):
+    return render(request, "imports/upload.html")
 
 @csrf_exempt
 @require_POST
