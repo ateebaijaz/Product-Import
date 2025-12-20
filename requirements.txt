@@ -2,6 +2,8 @@ amqp==5.3.1
 asgiref==3.11.0
 asttokens==3.0.1
 billiard==4.2.4
+boto3==1.42.14
+botocore==1.42.14
 celery==5.6.0
 click==8.3.1
 click-didyoumean==0.3.1
@@ -15,6 +17,7 @@ executing==2.2.1
 ipython==9.8.0
 ipython_pygments_lexers==1.1.1
 jedi==0.19.2
+jmespath==1.0.1
 kombu==5.6.1
 matplotlib-inline==0.2.1
 packaging==25.0
@@ -28,6 +31,7 @@ Pygments==2.19.2
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.1
 redis==7.1.0
+s3transfer==0.16.0
 six==1.17.0
 sqlparse==0.5.5
 stack-data==0.6.3
@@ -35,5 +39,6 @@ traitlets==5.14.3
 typing_extensions==4.15.0
 tzdata==2025.3
 tzlocal==5.3.1
+urllib3==2.6.2
 vine==5.1.0
 wcwidth==0.2.14
