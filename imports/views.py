@@ -39,6 +39,7 @@ from imports.tasks import process_csv_import
 
 
 @require_POST
+@csrf_exempt
 def start_import(request, job_id):
     job = ImportJob.objects.get(pk=job_id)
 
