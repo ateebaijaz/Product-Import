@@ -18,7 +18,6 @@ from django.views.decorators.http import require_POST
 from imports.models import ImportJob
 from imports.s3 import generate_presigned_upload_url
 
-@csrf_exempt
 @require_POST
 def get_upload_url(request):
     job = ImportJob.objects.create(status="pending")
@@ -34,8 +33,7 @@ def get_upload_url(request):
         "upload_url": upload_url,
     })
 
-from django.views.decorators.http import require_POST
-from imports.tasks import process_csv_import
+
 
 
 @require_POST
