@@ -17,3 +17,5 @@ class ImportJobAdmin(admin.ModelAdmin):
         'updated_at',
     )
 admin.site.register(ImportJob, ImportJobAdmin)
+
+#djago admin
