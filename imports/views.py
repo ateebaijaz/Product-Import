@@ -19,6 +19,7 @@ from imports.models import ImportJob
 from imports.s3 import generate_presigned_upload_url
 
 @require_POST
+@csrf_exempt
 def get_upload_url(request):
     job = ImportJob.objects.create(status="pending")
 
