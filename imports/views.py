@@ -11,26 +11,40 @@ from django.shortcuts import render
 def upload_page(request):
     return render(request, "imports/upload.html")
 
+import uuid
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
+from imports.models import ImportJob
+from imports.s3 import generate_presigned_upload_url
+
 @csrf_exempt
 @require_POST
-def upload_csv(request):
-    file = request.FILES.get("file")
-    if not file:
-        return JsonResponse({"error": "No file"}, status=400)
+def get_upload_url(request):
+    job = ImportJob.objects.create(status="pending")
 
-    csv_text = file.read().decode("utf-8")
+    object_key = f"imports/{job.pk}.csv"
+    upload_url = generate_presigned_upload_url(object_key)
 
-    job = ImportJob.objects.create(
-        file=file,
-        csv_text=csv_text
-    )
-
-    process_csv_import.delay(job.pk)
+    job.s3_key = object_key
+    job.save(update_fields=["s3_key"])
 
     return JsonResponse({
         "job_id": job.pk,
-        "status": job.status
+        "upload_url": upload_url,
     })
+
+from django.views.decorators.http import require_POST
+from imports.tasks import process_csv_import
+
+
+@require_POST
+def start_import(request, job_id):
+    job = ImportJob.objects.get(pk=job_id)
+
+    process_csv_import.delay(job.pk)
+
+    return JsonResponse({"status": "started"})
 
 
 

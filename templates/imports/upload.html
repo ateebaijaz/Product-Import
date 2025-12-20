@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>CSV Import</title>
+
     <a href="/products/">
-    <button>View Products</button>
+        <button>View Products</button>
     </a>
 
     <br><br>
-    <title>CSV Import</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -70,12 +72,13 @@
         }
     </style>
 </head>
+
 <body>
 
 <div class="container">
     <h2>Upload Products CSV</h2>
 
-    <input type="file" id="csvFile" />
+    <input type="file" id="csvFile" accept=".csv" />
     <br><br>
     <button onclick="uploadCSV()">Upload</button>
 
@@ -94,7 +97,7 @@
     let jobId = null;
     let pollInterval = null;
 
-    function uploadCSV() {
+    async function uploadCSV() {
         const fileInput = document.getElementById("csvFile");
         const file = fileInput.files[0];
 
@@ -103,39 +106,71 @@
             return;
         }
 
-        const formData = new FormData();
-        formData.append("file", file);
+        try {
+            // 1️⃣ Ask backend for presigned upload URL
+            document.getElementById("status").innerText = "Requesting upload URL...";
 
-        fetch("/imports/upload-csv/", {
-            method: "POST",
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
+            const res = await fetch("/imports/get-upload-url/", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}"
+                }
+            });
+
+            const data = await res.json();
             jobId = data.job_id;
-            document.getElementById("status").innerText = "Uploaded (Job ID: " + jobId + ")";
+            const uploadUrl = data.upload_url;
+
+            // 2️⃣ Upload CSV directly to S3
+            document.getElementById("status").innerText = "Uploading to S3...";
+
+            await fetch(uploadUrl, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "text/csv"
+                },
+                body: file
+            });
+
+            // 3️⃣ Notify backend to start async processing
+            document.getElementById("status").innerText = "Starting import...";
+
+            await fetch(`/imports/start-import/${jobId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}"
+                }
+            });
+
+            document.getElementById("status").innerText =
+                `Import started (Job ID: ${jobId})`;
+
             startPolling();
-        })
-        .catch(err => {
+
+        } catch (err) {
             console.error(err);
+            document.getElementById("status").innerText = "Failed";
             alert("Upload failed");
-        });
+        }
     }
 
     function startPolling() {
-        pollInterval = setInterval(() => {
-            fetch(`/imports/status/${jobId}/`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById("status").innerText = data.status.toUpperCase();
-                    document.getElementById("progress").innerText =
-                        `Progress: ${data.progress}% (${data.processed_rows}/${data.total_rows})`;
-                    document.getElementById("message").innerText = data.message || "";
+        pollInterval = setInterval(async () => {
+            const res = await fetch(`/imports/status/${jobId}/`);
+            const data = await res.json();
 
-                    if (data.status === "completed" || data.status === "failed") {
-                        clearInterval(pollInterval);
-                    }
-                });
+            document.getElementById("status").innerText =
+                data.status.toUpperCase();
+
+            document.getElementById("progress").innerText =
+                `Progress: ${data.progress}% (${data.processed_rows}/${data.total_rows})`;
+
+            document.getElementById("message").innerText =
+                data.message || "";
+
+            if (data.status === "completed" || data.status === "failed") {
+                clearInterval(pollInterval);
+            }
         }, 1500);
     }
 </script>
