@@ -16,21 +16,22 @@ def process_csv_import(self, job_id):
         job.message = 'Reading CSV'
         job.save(update_fields=['status', 'message'])
 
-        # -------- STEP 1: COUNT ROWS (STREAMING, NO MEMORY SPIKE) --------
-        with job.file.open(mode='r') as csvfile:
-            total_rows = sum(1 for _ in csv.DictReader(csvfile))
+        # -------- COUNT ROWS SAFELY --------
+        with job.file.open(mode='r') as f:
+            reader = csv.DictReader(f)
+            total_rows = sum(1 for _ in reader)
 
         job.total_rows = total_rows
         job.processed_rows = 0
         job.progress = 0
         job.save(update_fields=['total_rows', 'processed_rows', 'progress'])
 
-        # -------- STEP 2: PROCESS CSV IN STREAM --------
+        # -------- PROCESS CSV SAFELY --------
         BATCH_SIZE = 50
-        batch = {}  # key = sku_lower
+        batch = {}
 
-        with job.file.open(mode='r') as csvfile:
-            reader = csv.DictReader(csvfile)
+        with job.file.open(mode='r') as f:
+            reader = csv.DictReader(f)
 
             for idx, row in enumerate(reader, start=1):
                 sku = row.get('sku')
@@ -40,11 +41,11 @@ def process_csv_import(self, job_id):
                 if not sku or not name:
                     continue
 
-                normalized_sku = sku.strip()
-                sku_lower = normalized_sku.lower()
+                sku_clean = sku.strip()
+                sku_lower = sku_clean.lower()
 
                 batch[sku_lower] = Product(
-                    sku=normalized_sku,
+                    sku=sku_clean,
                     sku_lower=sku_lower,
                     name=name.strip(),
                     description=description.strip(),
@@ -58,7 +59,6 @@ def process_csv_import(self, job_id):
                     job.progress = round((idx / total_rows) * 100, 2)
                     job.save(update_fields=['processed_rows', 'progress'])
 
-            # -------- STEP 3: FLUSH REMAINING --------
             if batch:
                 _bulk_upsert_products(list(batch.values()))
                 job.processed_rows = total_rows
