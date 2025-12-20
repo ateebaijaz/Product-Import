@@ -14,22 +14,24 @@ def upload_page(request):
 @csrf_exempt
 @require_POST
 def upload_csv(request):
-    file = request.FILES.get('file')
-
+    file = request.FILES.get("file")
     if not file:
-        return JsonResponse(
-            {'error': 'No file provided'},
-            status=400
-        )
+        return JsonResponse({"error": "No file"}, status=400)
 
-    job = ImportJob.objects.create(file=file)
+    csv_text = file.read().decode("utf-8")
+
+    job = ImportJob.objects.create(
+        file=file,
+        csv_text=csv_text
+    )
 
     process_csv_import.delay(job.pk)
 
     return JsonResponse({
-        'job_id': job.pk,
-        'status': job.status
+        "job_id": job.pk,
+        "status": job.status
     })
+
 
 
 @require_GET

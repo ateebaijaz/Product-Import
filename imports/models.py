@@ -9,6 +9,7 @@ class ImportJob(models.Model):
     )
 
     file = models.FileField(upload_to='imports/')
+    csv_text = models.TextField(blank=True)
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
