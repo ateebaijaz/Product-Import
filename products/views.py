@@ -7,7 +7,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 
-
+@csrf_exempt
 def product_list(request):
     products = Product.objects.all().order_by('sku')
     sku = request.GET.get('sku')

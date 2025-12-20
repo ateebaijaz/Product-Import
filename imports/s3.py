@@ -2,8 +2,9 @@ import os
 import boto3
 from botocore.client import Config
 from datetime import timedelta
+from django.views.decorators.csrf import csrf_exempt
 
-
+@csrf_exempt
 def get_s3_client():
     return boto3.client(
         "s3",
@@ -16,7 +17,7 @@ def get_s3_client():
         ),
     )
 
-
+@csrf_exempt
 def generate_presigned_upload_url(object_key, expires_in=900):
     """
     Generate a presigned URL for uploading a CSV directly to S3.
