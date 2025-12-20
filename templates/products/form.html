@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% if mode == "create" %}Create{% else %}Edit{% endif %} Product</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f6f7fb;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 500px;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        label {
+            font-weight: bold;
+            color: #374151;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        input[readonly] {
+            background-color: #f3f4f6;
+            cursor: not-allowed;
+        }
+
+        button {
+            background-color: #4f46e5;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background-color: #4338ca;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>{% if mode == "create" %}Create{% else %}Edit{% endif %} Product</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <label>SKU</label><br>
+        <input type="text" name="sku"
+               value="{{ product.sku|default:'' }}"
+               {% if mode == "edit" %}readonly{% endif %}
+               required><br><br>
+
+        <label>Name</label><br>
+        <input type="text" name="name"
+               value="{{ product.name|default:'' }}"
+               required><br><br>
+
+        <label>Description</label><br>
+        <textarea name="description">{{ product.description|default:'' }}</textarea><br><br>
+
+        <button type="submit">Save</button>
+    </form>
+
+    <a href="/products/" class="back-link">← Back to Products</a>
+
+</div>
+
+</body>
+</html>

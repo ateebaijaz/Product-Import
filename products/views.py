@@ -49,3 +49,39 @@ def toggle_product_active(request, product_id):
     product.is_active = not product.is_active
     product.save(update_fields=["is_active"])
     return redirect("/products/")
+
+@csrf_exempt
+def product_create(request):
+    if request.method == "POST":
+        Product.objects.create(
+            sku=request.POST["sku"].strip(),
+            name=request.POST["name"].strip(),
+            description=request.POST.get("description", "").strip(),
+            is_active=True,
+        )
+        return redirect("product_list")
+
+    return render(request, "products/form.html", {"mode": "create"})
+
+@csrf_exempt
+def product_edit(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+
+    if request.method == "POST":
+        product.name = request.POST["name"].strip()
+        product.description = request.POST.get("description", "").strip()
+        product.save(update_fields=["name", "description"])
+        return redirect("product_list")
+
+    return render(request, "products/form.html", {
+        "mode": "edit",
+        "product": product,
+    })
+
+
+@require_POST
+@csrf_exempt
+def product_delete(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    product.delete()
+    return redirect("product_list")
