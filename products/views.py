@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from .models import Product
 from django.views.decorators.http import require_POST
 
+from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 
 
@@ -34,12 +35,15 @@ def product_list(request):
     )
 
 @require_POST
+@csrf_exempt
+
 def delete_all_products(request):
     Product.objects.all().delete()
     return redirect("/products/")
 
 
 @require_POST
+@csrf_exempt
 def toggle_product_active(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
     product.is_active = not product.is_active
