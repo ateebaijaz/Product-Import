@@ -1,11 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <a href="/imports/">
-    <button>Upload Products CSV</button>
-    </a>
-
-    <br><br>
     <title>Products</title>
     <style>
         body {
@@ -15,7 +10,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             background: #ffffff;
             padding: 25px;
             border-radius: 8px;
@@ -31,20 +26,28 @@
             background-color: #4f46e5;
             color: white;
             border: none;
-            padding: 10px 16px;
+            padding: 8px 14px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         button:hover {
             background-color: #4338ca;
         }
 
+        .danger {
+            background-color: #dc2626;
+        }
+
+        .danger:hover {
+            background-color: #b91c1c;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
         th {
@@ -55,10 +58,6 @@
         th, td {
             padding: 10px;
             border: 1px solid #d1d5db;
-        }
-
-        .actions {
-            margin-bottom: 15px;
         }
 
         .pagination {
@@ -75,54 +74,102 @@
             text-decoration: underline;
         }
 
-        .danger {
-            background-color: #dc2626;
+        .actions {
+            margin-bottom: 15px;
         }
 
-        .danger:hover {
-            background-color: #b91c1c;
+        .filter-form input,
+        .filter-form select {
+            padding: 6px;
+            margin-right: 5px;
         }
     </style>
 </head>
-<body>
 
+<body>
 <div class="container">
+
     <h2>Product List</h2>
 
+    <!-- Top actions -->
+    <div class="actions">
+        <a href="/imports/">
+            <button>Upload Products CSV</button>
+        </a>
+    </div>
 
+    <!-- Filters -->
+    <form method="get" class="filter-form">
+        <input type="text" name="sku" placeholder="Search SKU"
+               value="{{ sku }}">
+
+        <select name="is_active">
+            <option value="">All</option>
+            <option value="true" {% if is_active == "true" %}selected{% endif %}>Active</option>
+            <option value="false" {% if is_active == "false" %}selected{% endif %}>Inactive</option>
+        </select>
+
+        <button type="submit">Filter</button>
+    </form>
+
+    <!-- Product table -->
     <table>
         <tr>
             <th>SKU</th>
             <th>Name</th>
             <th>Description</th>
+            <th>Status</th>
+            <th>Action</th>
         </tr>
+
         {% for product in products %}
         <tr>
             <td>{{ product.sku }}</td>
             <td>{{ product.name }}</td>
             <td>{{ product.description }}</td>
+            <td>
+                {% if product.is_active %}
+                    Active
+                {% else %}
+                    Inactive
+                {% endif %}
+            </td>
+            <td>
+                <form method="post" action="/products/toggle/{{ product.id }}/">
+                    {% csrf_token %}
+                    <button type="submit">
+                        {% if product.is_active %}
+                            Deactivate
+                        {% else %}
+                            Activate
+                        {% endif %}
+                    </button>
+                </form>
+            </td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="3">No products found</td>
+            <td colspan="5">No products found</td>
         </tr>
         {% endfor %}
     </table>
 
+    <!-- Pagination -->
     <div class="pagination">
         {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            <a href="?page={{ page_obj.previous_page_number }}&sku={{ sku }}&is_active={{ is_active }}">Previous</a>
         {% endif %}
 
         Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
 
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">Next</a>
+            <a href="?page={{ page_obj.next_page_number }}&sku={{ sku }}&is_active={{ is_active }}">Next</a>
         {% endif %}
     </div>
 
     <br>
 
+    <!-- Bulk delete -->
     <form method="post" action="/products/delete-all/">
         {% csrf_token %}
         <button type="submit" class="danger"
@@ -130,7 +177,7 @@
             Delete All Products
         </button>
     </form>
-</div>
 
+</div>
 </body>
 </html>
